@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+clips/
+live_buffer/
+output/
+.vscode/
+.idea/
+venv/
+env/

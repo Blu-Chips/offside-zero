@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offside Zero | Premium AI VAR Assistant</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap');
+
+        :root {
+            --metal-dark: #1a1a1a;
+            --metal-light: #3d3d3d;
+            --lcd-bg: #051015;
+            --lcd-glow: #00f0ff;
+            /* Electric Cyan */
+            --danger-glow: #ff003c;
+            --button-face: #2c2c2c;
+            --text-main: #b8c9d1;
+        }
+
+        body {
+            background: #111;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 1px,
+                    #111 1px,
+                    #111 3px);
+        }
+
+        /* Scanlines overlay */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .header {
+            display: none;
+        }
+
+        /* Hide old header mechanism if present */
+
+        .main-container {
+            width: 95%;
+            max-width: 1800px;
+            background: linear-gradient(180deg, #444 0%, #222 100%);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 20px 50px rgba(0, 0, 0, 0.8),
+                0 0 0 1px #000;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 15px;
+            border: 2px solid #555;
+            position: relative;
+        }
+
+        /* Screw heads */
+        .main-container::before,
+        .main-container::after {
+            content: "+";
+            position: absolute;
+            color: #111;
+            font-family: monospace;
+            font-size: 20px;
+            top: 10px;
+            text-shadow: 1px 1px 0 #555;
+        }
+
+        .main-container::before {
+            left: 10px;
+        }
+
+        .main-container::after {
+            right: 10px;
+        }
+
+        .sidebar {
+            background: #252525;
+            border: 1px solid #111;
+            border-bottom: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        h3 {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0 0 10px 0;
+            text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid #111;
+            padding-bottom: 2px;
+        }
+
+        /* LCD Screen Style */
+        .lcd-panel {
+            background: var(--lcd-bg);
+            border: 2px solid #111;
+            border-radius: 4px;
+            box-shadow:
+                inset 0 0 20px rgba(0, 0, 0, 0.8),
+                0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            color: var(--lcd-glow);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .lcd-panel::before {
+            content: " ";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .main-view {
+            padding: 0;
+            /* Reset */
+            background: transparent;
+            border: none;
+        }
+
+        .display-area {
+            background: #000;
+            border: 4px solid #1a1a1a;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px #000;
+            height: 100%;
+            position: relative;
+        }
+
+        img.main,
+        #livePlayer {
+            border-radius: 4px;
+            border: 1px solid #333;
+            filter: contrast(1.1) brightness(1.1);
+        }
+
+        /* Buttons (Physical Gel Style) */
+        button {
+            border: 1px solid #111;
+            background: linear-gradient(180deg, #3d3d3d 0%, #2c2c2c 100%);
+            color: #ccc;
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        button:hover {
+            background: linear-gradient(180deg, #444 0%, #333 100%);
+            color: #fff;
+        }
+
+        button:active {
+            background: #222;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            transform: translateY(1px);
+        }
+
+        button#analyzeBtn {
+            background: linear-gradient(180deg, #aa0000 0%, #770000 100%);
+            color: #ffbbaabb;
+            border: 1px solid #440000;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 100, 100, 0.2),
+                0 0 10px rgba(255, 0, 0, 0.2);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        button#analyzeBtn:hover {
+            background: linear-gradient(180deg, #cc0000 0%, #990000 100%);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+        }
+
+        .live-toggle button.active {
+            background: linear-gradient(180deg, #007799 0%, #004455 100%);
+            color: #ccffff;
+            box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+            border-color: #002233;
+            text-shadow: 0 0 5px cyan;
+        }
+
+        /* Inputs */
+        select,
+        input[type="text"] {
+            background: black;
+            border: 1px solid #444;
+            border-bottom: 1px solid #555;
+            color: var(--lcd-glow);
+            font-family: 'Share Tech Mono', monospace;
+            border-radius: 2px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+            text-transform: uppercase;
+        }
+
+        /* Status Badge as "LED" */
+        .status-badge {
+            font-family: 'Share Tech Mono';
+            background: #000;
+            border: 1px solid #333;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            border-radius: 2px;
+            padding: 4px 8px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Chat Area (VFD Style) */
+        .chat-container {
+            border-top: 1px solid #111;
+            margin-top: 15px;
+            padding-top: 15px;
+            box-shadow: 0 -1px 0 #333;
+        }
+
+        .chat-history {
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            font-family: 'Share Tech Mono', monospace;
+            color: #00ffaa;
+            padding: 10px;
+        }
+
+        .chat-history div {
+            margin-bottom: 4px;
+            border-bottom: 1px dashed #222;
+        }
+
+        /* Result Card - "Digital Display" */
+        .result-card {
+            background: #111;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .decision {
+            font-family: 'Share Tech Mono';
+            font-size: 32px;
+            letter-spacing: -2px;
+            text-align: center;
+            background: #000;
+            border: 1px solid #222;
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        .OFFSIDE {
+            color: #ff3333;
+            text-shadow: 0 0 10px red;
+        }
+
+        .ONSIDE {
+            color: #33ff33;
+            text-shadow: 0 0 10px lime;
+        }
+
+        /* Loader */
+        .loader {
+            border: 4px solid #111;
+            border-bottom-color: var(--lcd-glow);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: rotation 1s linear infinite;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div
+        style="background: linear-gradient(to right, #222, #111); padding: 5px 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; color: #888; font-family: sans-serif; font-size: 10px; letter-spacing: 1px;">
+        <div>OFFSIDE ZERO <span style="color: #00f0ff; margin-left: 5px;">PRO V.3.0</span></div>
+        <div>GEMINI NEURAL ENGINE_</div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h3>SELECT VIDEO FEED</h3>
+            <div class="live-toggle">
+                <button onclick="setMode('vod')" class="active" id="btnVod">UPLOAD / VOD</button>
+                <button onclick="setMode('live')" id="btnLive">LIVE STREAM</button>
+            </div>
+
+            <div id="vodControls">
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                    <input type="file" id="fileInput" accept=".mp4,.mov,.avi" style="display: none;"
+                        onchange="handleUpload(this)">
+                    <button onclick="document.getElementById('fileInput').click()"
+                        style="padding: 8px; background: #334155; border: 1px solid var(--border); color: var(--text-dim); border-radius: 8px; cursor: pointer; flex-grow: 1;">
+                        + UPLOAD CLIP
+                    </button>
+                </div>
+
+                <select id="clipSelect">
+                    {% for clip in clips %}
+                    <option value="{{ clip }}">{{ clip }}</option>
+                    {% endfor %}
+                </select>
+                <button onclick="analyze()" id="analyzeBtn">ANALYZE INCIDENT</button>
+            </div>
+
+            <div id="liveControls" style="display: none;">
+                <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 10px;">
+                    Receiving signal from Field Cam 1...
+                </p>
+                <div
+                    style="padding: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                    <div class="pulse" style="width: 8px; height: 8px; background: #ef4444;"></div>
+                    <span style="font-weight: 700; color: #ef4444; font-size: 14px;">LIVE SIGNAL ACTIVE</span>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <h3>ASK THE AI</h3>
+                <div id="chatHistory" class="chat-history">
+                    <div style="color: var(--text-dim); text-align: center; margin-top: 20px;">
+                        Ask about the decision or rules...
+                    </div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Why is this offside?">
+                    <button onclick="sendChat()">ASK</button>
+                </div>
+            </div>
+
+            <div class="result-card" id="resultCard" style="display: none;">
+                <div class="stat-label">DECISION</div>
+                <div class="decision" id="decisionText">--</div>
+
+                <div class="stat-label">CONFIDENCE</div>
+                <div class="stat-value" id="confidenceText">--%</div>
+
+                <div class="stat-label">AI EXPLANATION</div>
+                <div class="explanation" id="explanationText">...</div>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="loader"></div>
+                <h2 style="margin-top: 24px; font-family: 'Outfit';">MULTIMODAL ANALYSIS...</h2>
+                <p style="color: var(--text-dim);">Running spatial heuristics on Gemini 3</p>
+            </div>
+
+            <div id="displayArea" class="display-area" style="display: none;">
+                <!-- VOD Result -->
+                <img id="mainImage" class="main" src="" alt="VAR Review" onclick="handleVideoClick(event)">
+
+                <!-- Live Player -->
+                <img id="livePlayer" src="/live_feed"
+                    style="display: none; width: 100%; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.5);"
+                    onclick="handleVideoClick(event)">
+
+                <div class="carousel" id="carousel"></div>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <h2>Ready for Review</h2>
+                <p>Select a match clip from the sidebar to trigger an AI VAR check.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentContext = null;
+        let mode = 'vod';
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btnVod').className = mode === 'vod' ? 'active' : '';
+            document.getElementById('btnLive').className = mode === 'live' ? 'active' : '';
+
+            document.getElementById('vodControls').style.display = mode === 'vod' ? 'block' : 'none';
+            document.getElementById('liveControls').style.display = mode === 'live' ? 'block' : 'none';
+            // Hide result card if switching to live
+            if (mode === 'live') document.getElementById('resultCard').style.display = 'none';
+
+            const display = document.getElementById('displayArea');
+            const mainImg = document.getElementById('mainImage');
+            const livePlayer = document.getElementById('livePlayer');
+            const carousel = document.getElementById('carousel');
+            const emptyState = document.getElementById('emptyState');
+
+            if (mode === 'live') {
+                display.style.display = 'block';
+                emptyState.style.display = 'none';
+                mainImg.style.display = 'none';
+                carousel.style.display = 'none';
+                livePlayer.style.display = 'block';
+            } else {
+                livePlayer.style.display = 'none';
+                // Don't auto show display area for VOD until analyzed
+                if (!mainImg.src || mainImg.src === window.location.href) {
+                    display.style.display = 'none';
+                    emptyState.style.display = 'flex';
+                } else {
+                    display.style.display = 'block';
+                    mainImg.style.display = 'block';
+                    carousel.style.display = 'flex';
+                }
+            }
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const history = document.getElementById('chatHistory');
+            const msg = input.value;
+            if (!msg) return;
+
+            // Remove placeholder text if exists
+            if (history.children.length > 0 && history.children[0].innerText.includes('Ask about')) {
+                history.innerHTML = '';
+            }
+
+            // User msg
+            const userDiv = document.createElement('div');
+            userDiv.style.textAlign = 'right';
+            userDiv.style.color = '#f43f5e';
+            userDiv.innerText = `You: ${msg}`;
+            history.appendChild(userDiv);
+
+            input.value = '';
+            history.scrollTop = history.scrollHeight;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, context: currentContext || {} })
+                });
+                const data = await response.json();
+
+                const aiDiv = document.createElement('div');
+                aiDiv.style.textAlign = 'left';
+                aiDiv.style.color = '#cbd5e1';
+                aiDiv.innerText = `AI: ${data.response}`;
+                history.appendChild(aiDiv);
+
+                history.scrollTop = history.scrollHeight;
+            } catch (e) {
+                const errDiv = document.createElement('div');
+                errDiv.style.color = 'red';
+                errDiv.innerText = "Error connecting to AI.";
+                history.appendChild(errDiv);
+            }
+        }
+
+        // Add Enter key support
+        document.getElementById('chatInput').addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                sendChat();
+            }
+        });
+
+        async function handleVideoClick(event) {
+            if (mode !== 'live' && !document.getElementById('mainImage').src) return;
+
+            const rect = event.target.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+
+            console.log("Clicked:", x, y);
+
+            if (confirm(`Analyze player at position (${x.toFixed(2)}, ${y.toFixed(2)})?`)) {
+                // Trigger ROI Analysis (Mock for now)
+                const history = document.getElementById('chatHistory');
+                history.innerHTML += `<div style="color: #4ade80; text-align: center; margin: 10px 0;">--- Analyzing Region at (${x.toFixed(2)}, ${y.toFixed(2)}) ---</div>`;
+
+                // Simulate AI noticing the click
+                setTimeout(() => {
+                    history.innerHTML += `<div style="text-align: left; color: #cbd5e1;">AI: I'm focusing on the player at ${x.toFixed(2)}, ${y.toFixed(2)}. Analyzing potential interference...</div>`;
+                    history.scrollTop = history.scrollHeight;
+                }, 1500);
+            }
+        }
+
+        async function analyze() {
+            const clip = document.getElementById('clipSelect').value;
+            const btn = document.getElementById('analyzeBtn');
+            const resultCard = document.getElementById('resultCard');
+            const displayArea = document.getElementById('displayArea');
+            const emptyState = document.getElementById('emptyState');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+            loadingOverlay.style.display = 'flex';
+            emptyState.style.display = 'none';
+            resultCard.style.display = 'none'; // Hide previous results
+
+            const formData = new FormData();
+            formData.append('clip_name', clip);
+
+            try {
+                // 1. Submit Task
+                const startResponse = await fetch('/analyze', { method: 'POST', body: formData });
+                const startData = await startResponse.json();
+
+                if (startData.error) throw new Error(startData.error);
+
+                const taskId = startData.task_id;
+                console.log("Task submitted:", taskId);
+
+                // 2. Poll Status
+                while (true) {
+                    await new Promise(r => setTimeout(r, 1000)); // Wait 1s
+
+                    const statusResponse = await fetch(`/status/${taskId}`);
+                    const statusData = await statusResponse.json();
+
+                    console.log("Status:", statusData.status);
+
+                    if (statusData.status === 'COMPLETED') {
+                        renderResult(statusData.result);
+                        break;
+                    } else if (statusData.status === 'FAILED') {
+                        throw new Error(statusData.error || "Analysis failed");
+                    }
+                    // If PENDING or PROCESSING, continue loop
+                }
+
+            } catch (e) {
+                alert("Critical System Error: " + e.message);
+                loadingOverlay.style.display = 'none';
+                emptyState.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "ANALYZE INCIDENT";
+            }
+        }
+
+        function renderResult(data) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const displayArea = document.getElementById('displayArea');
+            const resultCard = document.getElementById('resultCard');
+
+            // Decision Styling
+            const decisionEl = document.getElementById('decisionText');
+            decisionEl.innerText = data.decision;
+            decisionEl.className = `decision ${data.decision}`;
+
+            currentContext = data; // Store full context for chat
+
+            document.getElementById('confidenceText').innerText = Math.round((data.confidence || 0) * 100) + "%";
+            document.getElementById('explanationText').innerText = data.explanation;
+
+            // Visuals
+            if (data.annotated_frames && data.annotated_frames.length > 0) {
+                const mainImg = document.getElementById('mainImage');
+                mainImg.src = data.annotated_frames[0];
+
+                const carousel = document.getElementById('carousel');
+                carousel.innerHTML = '';
+
+                data.annotated_frames.forEach((url, i) => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    if (i === 0) img.classList.add('active');
+                    img.onclick = () => {
+                        mainImg.src = url;
+                        Array.from(carousel.children).forEach(c => c.classList.remove('active'));
+                        img.classList.add('active');
+                    };
+                    carousel.appendChild(img);
+                });
+            }
+
+            loadingOverlay.style.display = 'none';
+            displayArea.style.display = 'block';
+            resultCard.style.display = 'block';
+        }
+
+        async function handleUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const btn = input.nextElementSibling;
+            const originalText = btn.innerText;
+            btn.innerText = "UPLOADING...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                // Add to select and select it
+                const select = document.getElementById('clipSelect');
+                const option = document.createElement('option');
+                option.value = data.filename;
+                option.text = data.filename;
+                select.add(option);
+                select.value = data.filename;
+
+                alert("Upload successful: " + data.filename);
+
+            } catch (e) {
+                alert("Upload failed: " + e.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                input.value = ''; // Reset
+            }
+        }
+    </script>
+</body>
+
+</html>
