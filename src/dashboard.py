@@ -142,21 +142,21 @@ async def ingest_frame(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
             
-        # Cleanup old frames (keep buffer at max 100 frames)
+        # Cleanup old frames (keep buffer small - max 100 frames)
         try:
-            all_frames = glob.glob(os.path.join(LIVE_BUFFER_DIR, "*.jpg"))
+            all_frames = sorted(
+                glob.glob(os.path.join(LIVE_BUFFER_DIR, "*.jpg")),
+                key=os.path.getmtime
+            )
             if len(all_frames) > 100:
-                # Sort by modification time (oldest first)
-                all_frames.sort(key=lambda x: os.path.getmtime(x))
-                # Delete oldest frames to maintain limit
-                frames_to_delete = all_frames[:-100]
-                for old_frame in frames_to_delete:
+                # Delete oldest frames
+                for old_frame in all_frames[:-100]:
                     try:
                         os.remove(old_frame)
-                    except OSError as e:
-                        print(f"Warning: Could not delete old frame {old_frame}: {e}")
-        except Exception as cleanup_error:
-            print(f"Warning: Frame cleanup failed: {cleanup_error}")
+                    except OSError:
+                        pass  # Ignore deletion errors
+        except Exception:
+            pass  # Don't fail if cleanup fails
         
         return {"status": "received", "file": filename}
     except Exception as e:
