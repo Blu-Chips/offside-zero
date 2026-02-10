@@ -15,15 +15,38 @@ logger = logging.getLogger(__name__)
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Load Rules
-try:
-    BRAIN_DIR = r"C:\Users\JAMES\.gemini\antigravity\brain\b9612e86-52c6-4d3f-829e-0ebcb0fff33c" # Ideally dynamic, but hardcoded for this env based on artifact path
-    RULES_PATH = os.path.join(BRAIN_DIR, "fifa_rules.md")
-    with open(RULES_PATH, 'r') as f:
-        FIFA_RULES = f.read()
-except Exception as e:
-    logger.warning(f"Could not load FIFA rules: {e}")
-    FIFA_RULES = "Standard FIFA Offside and Handball rules apply."
+# Load Rules using multi-tier lookup
+def load_fifa_rules() -> str:
+    """
+    Load FIFA rules from multiple possible locations:
+    1. FIFA_RULES_PATH environment variable
+    2. ./fifa_rules.md (project root)
+    3. ./data/fifa_rules.md
+    4. Fallback to default rules string
+    """
+    project_root = Path(__file__).parent.parent
+    
+    search_paths = [
+        os.environ.get("FIFA_RULES_PATH"),
+        project_root / "fifa_rules.md",
+        project_root / "data" / "fifa_rules.md",
+    ]
+    
+    for rules_path in search_paths:
+        if rules_path and Path(rules_path).exists():
+            try:
+                with open(rules_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    logger.info(f"Successfully loaded FIFA rules from: {rules_path}")
+                    return content
+            except Exception as e:
+                logger.warning(f"Failed to read FIFA rules from {rules_path}: {e}")
+                continue
+    
+    logger.warning("Could not load FIFA rules from any source, using default")
+    return "Standard FIFA Offside and Handball rules apply."
+
+FIFA_RULES = load_fifa_rules()
 
 class GeminiClient:
     def __init__(self, model_name: str = None):

@@ -122,8 +122,8 @@ class MultiAgentOrchestrator:
         self.vision_agent = VisionAgent()
         self.rules_agent = RulesAgent()
         # Use Pro only for final synthesis where high reasoning is critical
-        self.manager = Agent("Manager", "You are the VAR Process Coordinator.", model_name="gemini-1.5-flash")
-        self.synthesizer = Agent("Synthesizer", "Final VAR Judge.", model_name="gemini-1.5-pro")
+        self.manager = Agent("Manager", "You are the VAR Process Coordinator.", model_name="gemini-2.5-flash")
+        self.synthesizer = Agent("Synthesizer", "Final VAR Judge.", model_name="gemini-2.5-pro")
 
     def process_frame(self, frame: Image.Image) -> Dict[str, Any]:
         """

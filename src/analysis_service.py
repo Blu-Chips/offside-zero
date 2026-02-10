@@ -6,9 +6,9 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 
 # New MAS Import
-from multi_agent_system import MultiAgentOrchestrator
-from video_processor import load_video
-from overlay import create_overlay_engine
+from src.multi_agent_system import MultiAgentOrchestrator
+from src.video_processor import load_video
+from src.overlay import create_overlay_engine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
