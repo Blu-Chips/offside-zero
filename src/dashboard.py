@@ -14,7 +14,7 @@ from typing import List, Dict, Any
 import asyncio
 
 # Import our core modules
-from analysis_service import get_analysis_service
+from src.analysis_service import get_analysis_service
 
 app = FastAPI(title="Offside Zero Dashboard")
 
@@ -142,8 +142,21 @@ async def ingest_frame(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
             
-        # Cleanup old frames (keep buffer small)
-        # ... logic to delete old files ...
+        # Cleanup old frames (keep buffer at max 100 frames)
+        try:
+            all_frames = glob.glob(os.path.join(LIVE_BUFFER_DIR, "*.jpg"))
+            if len(all_frames) > 100:
+                # Sort by modification time (oldest first)
+                all_frames.sort(key=lambda x: os.path.getmtime(x))
+                # Delete oldest frames to maintain limit
+                frames_to_delete = all_frames[:-100]
+                for old_frame in frames_to_delete:
+                    try:
+                        os.remove(old_frame)
+                    except OSError as e:
+                        print(f"Warning: Could not delete old frame {old_frame}: {e}")
+        except Exception as cleanup_error:
+            print(f"Warning: Frame cleanup failed: {cleanup_error}")
         
         return {"status": "received", "file": filename}
     except Exception as e:
