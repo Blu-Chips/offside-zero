@@ -15,38 +15,30 @@ logger = logging.getLogger(__name__)
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Load Rules using multi-tier lookup
-def load_fifa_rules() -> str:
-    """
-    Load FIFA rules from multiple possible locations:
-    1. FIFA_RULES_PATH environment variable
-    2. ./fifa_rules.md (project root)
-    3. ./data/fifa_rules.md
-    4. Fallback to default rules string
-    """
-    project_root = Path(__file__).parent.parent
-    
-    search_paths = [
-        os.environ.get("FIFA_RULES_PATH"),
-        project_root / "fifa_rules.md",
-        project_root / "data" / "fifa_rules.md",
-    ]
-    
-    for rules_path in search_paths:
-        if rules_path and Path(rules_path).exists():
-            try:
-                with open(rules_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    logger.info(f"Successfully loaded FIFA rules from: {rules_path}")
-                    return content
-            except Exception as e:
-                logger.warning(f"Failed to read FIFA rules from {rules_path}: {e}")
-                continue
-    
-    logger.warning("Could not load FIFA rules from any source, using default")
+def _load_fifa_rules():
+    """Load FIFA rules from various locations with fallback."""
+    # Check environment variable first
+    env_path = os.environ.get("FIFA_RULES_PATH")
+    if env_path and os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            return f.read()
+
+    # Check project root
+    root_path = Path(__file__).parent.parent / "fifa_rules.md"
+    if root_path.exists():
+        with open(root_path, 'r') as f:
+            return f.read()
+
+    # Check data directory
+    data_path = Path(__file__).parent.parent / "data" / "fifa_rules.md"
+    if data_path.exists():
+        with open(data_path, 'r') as f:
+            return f.read()
+
+    # Fallback to default
     return "Standard FIFA Offside and Handball rules apply."
 
-FIFA_RULES = load_fifa_rules()
+FIFA_RULES = _load_fifa_rules()
 
 class GeminiClient:
     def __init__(self, model_name: str = None):
